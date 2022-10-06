@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Document</title>
+</head>
+<!-- 
+1. gọi API lấy về data
+1.1 mảng lưu trữ
+2. xử lý data lấy ra name, dùng index làm stt lưu vào mảng 
+với phần tử là obj có cấu trúc chứa name,index
+3. 
+
+-->
+<body>
+    
+</body>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+
+
+    class Pokemon {
+        constructor() {
+            this.storage = [];
+            this.offset = 0;
+            this.limit = 100
+            
+        }
+    
+        async getDataPokemon (limit,offset)  {
+            let response = await axios.get('https://pokeapi.co/api/v2/pokemon',{
+                params : {
+                    limit,
+                    offset,
+                }
+            })
+            .then(res => {
+                // console.log(res);
+                let {results} = res.data;
+                return results
+                })
+            .catch(err=>{
+                console.log(err);
+                return []
+            })
+            return response;
+        }
+
+        storing(arr) {
+            arr.forEach((element,index) => {
+                this.storage = [...this.storage,{
+                    name:element.name,
+                    id: index,
+                    url: element.url
+                }]
+            });
+            return this.storage;
+        }
+
+        render() {
+
+        }
+
+
+        init() {
+            this.getDataPokemon(this.limit,this.offset)
+            .then(res => { 
+                console.log(res);
+                let arr2 = this.storing(res)
+                console.log(arr2);
+
+            
+            })
+        }
+
+     
+    }
+
+    const pokemonList = new Pokemon()
+    pokemonList.init()
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+</script>
+
+</html>
