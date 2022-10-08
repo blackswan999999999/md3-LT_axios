@@ -5,120 +5,154 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .wrap {
+            width: 500px;
+        }
 
+        table {
+            width: 100%;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        tr:hover {
+            background-color: rgb(145, 125, 125);
+            color: white;
+        }
+
+        td a {
+            color: black;
+            text-decoration: none;
+        }
+
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
     <title>Document</title>
 </head>
 <!-- 
 1. gọi API lấy về data
-1.1 mảng lưu trữ
-2. xử lý data lấy ra name, dùng index làm stt lưu vào mảng 
-với phần tử là obj có cấu trúc chứa name,index
-3. 
+2. xử lý data lấy ra name, dùng index làm stt?!. Lưu vào mảng với 
+cấu trúc mỗi phần tử là obj có cấu trúc chứa name, index, url
+3. duyệt qua mảng lưu trữ đưa vào table
+4. xử lý logic btn next, prev, đánh số trang.
 
 -->
+
 <body>
-    
+
+    <div class="wrap">
+        <table class="listData">
+            <tr>
+                <th>Số thứ tự</th>
+                <th>Tên Pokemon</th>
+                <th>URL</th>
+            </tr>
+            <tbody class="listData_tbody"></tbody>
+        </table>
+        <div class="dashboard">
+            <button id="prev">Prev</button>
+            <button id="next">Next</button>
+        </div>
+    </div>
+
 </body>
-
-
-
-
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-
-
     class Pokemon {
         constructor() {
             this.storage = [];
             this.offset = 0;
-            this.limit = 100
-            
+            this.limit = 100;
+            this.html = '';
+            this.urlPrev;
+            this.urlNext;
+            this.tbody = document.querySelector('.listData_tbody');
+            this.prevBtn = document.getElementById('prev');
+            this.nextBtn = document.getElementById('next');
         }
-    
-        async getDataPokemon (limit,offset)  {
-            let response = await axios.get('https://pokeapi.co/api/v2/pokemon',{
-                params : {
-                    limit,
-                    offset,
+        async getDataPokemon() {
+            let response = await axios.get('https://pokeapi.co/api/v2/pokemon', {
+                params: {
+                    limit: this.limit,
+                    offset: this.offset,
                 }
             })
-            .then(res => {
-                // console.log(res);
-                let {results} = res.data;
-                return results
+                .then(res => {
+                    console.log(res);
+                    return res;
                 })
-            .catch(err=>{
-                console.log(err);
-                return []
-            })
+                .catch(err => {
+                    console.log(err);
+                    return []
+                })
             return response;
         }
-
-        storing(arr) {
-            arr.forEach((element,index) => {
-                this.storage = [...this.storage,{
-                    name:element.name,
-                    id: index,
-                    url: element.url
-                }]
-            });
-            return this.storage;
-        }
-
-        render() {
-
-        }
-
-
-        init() {
-            this.getDataPokemon(this.limit,this.offset)
-            .then(res => { 
-                console.log(res);
-                let arr2 = this.storing(res)
-                console.log(arr2);
-
-            
+        createTable(arrForStorage) {
+            let html = arrForStorage.map((element, index) => {
+                const { name, url } = element
+                // console.log(index + this.offset + 1);
+                return `
+                <tr>
+                    <td>${index + this.offset + 1}</td>
+                    <td>${name}</td>
+                    <td><a  target="_blank" href="${url}">Click!</a></td>
+                </tr>
+                `
             })
+            this.tbody.innerHTML = html.join('');
+        }
+        handlePaginations() {
+            this.nextBtn.addEventListener('click', () => {
+                if (this.urlNext) {
+                    this.storage = [];
+                    this.offset += 100;
+                    this.callApi()
+                }
+            })
+            this.prevBtn.onclick = () => {
+                if (this.urlPrev){
+                    this.storage = [];
+                    this.offset -= 100;
+                    this.callApi()
+                }
+            }
         }
 
-     
+
+
+        handleDataFormAPI(res) {
+            let { next, previous, results } = res.data;
+            this.urlPrev = previous;
+            this.urlNext = next;
+            this.storage = results;
+            this.createTable(this.storage);
+            this.prevBtn.disabled = !this.urlPrev ;
+            this.nextBtn.disabled = !this.urlNext ;
+
+        }
+        callApi() {
+            this.getDataPokemon().then(res => this.handleDataFormAPI(res));
+        }
+        
+        init() {
+            this.callApi();
+            this.handlePaginations()
+        }
     }
-
-    const pokemonList = new Pokemon()
-    pokemonList.init()
-
-   
+    const pokemonList = new Pokemon();
+    pokemonList.init();
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 </script>
 
 </html>
